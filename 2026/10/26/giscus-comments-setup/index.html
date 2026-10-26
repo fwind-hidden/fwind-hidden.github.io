@@ -1,0 +1,397 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>用 Giscus 给 Hexo + Butterfly 博客加评论系统 | fwind_hidden的小破站</title><meta name="author" content="fwind_hidden"><meta name="copyright" content="fwind_hidden"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="GitHub Pages 只托管静态文件，没有数据库，所以评论必须”存在别处”。这篇记录本站接入 Giscus 的全过程，含踩坑点。 一、四种方案怎么选   方案 评论存在哪 需要后端 登录方式 适用    Giscus 仓库 Discussions 否 GitHub 推荐，读者有 GitHub 账号即可   Utterances 仓库 Issues 否 GitHub 界面朴素，把评论当 issu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用 Giscus 给 Hexo + Butterfly 博客加评论系统">
+<meta property="og:url" content="https://fwind-hidden.github.io/2026/10/26/giscus-comments-setup/index.html">
+<meta property="og:site_name" content="fwind_hidden的小破站">
+<meta property="og:description" content="GitHub Pages 只托管静态文件，没有数据库，所以评论必须”存在别处”。这篇记录本站接入 Giscus 的全过程，含踩坑点。 一、四种方案怎么选   方案 评论存在哪 需要后端 登录方式 适用    Giscus 仓库 Discussions 否 GitHub 推荐，读者有 GitHub 账号即可   Utterances 仓库 Issues 否 GitHub 界面朴素，把评论当 issu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fwind-hidden.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-10-26T13:00:00.000Z">
+<meta property="article:modified_time" content="2026-10-26T11:02:25.485Z">
+<meta property="article:author" content="fwind_hidden">
+<meta property="article:tag" content="Giscus">
+<meta property="article:tag" content="技术">
+<meta property="article:tag" content="评论系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fwind-hidden.github.io/img/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "用 Giscus 给 Hexo + Butterfly 博客加评论系统",
+  "url": "https://fwind-hidden.github.io/2026/10/26/giscus-comments-setup/",
+  "image": "https://fwind-hidden.github.io/img/avatar.png",
+  "datePublished": "2026-10-26T13:00:00.000Z",
+  "dateModified": "2026-10-26T11:02:25.485Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "fwind_hidden",
+      "url": "https://fwind-hidden.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://fwind-hidden.github.io/2026/10/26/giscus-comments-setup/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '用 Giscus 给 Hexo + Butterfly 博客加评论系统',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#site-subtitle #subtitle { white-space: pre-wrap; }</style><style>#footer{background-color:#12151c!important;background-image:none!important}#footer>*, #footer .copyright, #footer .framework-info{color:#aeb9c6!important}#footer a{color:#aeb9c6!important}#footer a:hover{color:#49b1f5!important}</style><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/sponsor/"><i class="fa-fw fas fa-coffee"></i><span> 赞助</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">fwind_hidden的小破站</span></a><a class="nav-page-title" href="/"><span class="site-name">用 Giscus 给 Hexo + Butterfly 博客加评论系统</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/sponsor/"><i class="fa-fw fas fa-coffee"></i><span> 赞助</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">用 Giscus 给 Hexo + Butterfly 博客加评论系统</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-10-26T13:00:00.000Z" title="发表于 2026-10-26 21:00:00">2026-10-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-26T11:02:25.485Z" title="更新于 2026-10-26 19:02:25">2026-10-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">864</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>GitHub Pages 只托管静态文件，没有数据库，所以评论必须”存在别处”。这篇记录本站接入 Giscus 的全过程，含踩坑点。</p>
+<h2 id="一、四种方案怎么选"><a href="#一、四种方案怎么选" class="headerlink" title="一、四种方案怎么选"></a>一、四种方案怎么选</h2><table>
+<thead>
+<tr>
+<th align="left">方案</th>
+<th align="left">评论存在哪</th>
+<th align="left">需要后端</th>
+<th align="left">登录方式</th>
+<th align="left">适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Giscus</strong></td>
+<td align="left">仓库 Discussions</td>
+<td align="left">否</td>
+<td align="left">GitHub</td>
+<td align="left">推荐，读者有 GitHub 账号即可</td>
+</tr>
+<tr>
+<td align="left">Utterances</td>
+<td align="left">仓库 Issues</td>
+<td align="left">否</td>
+<td align="left">GitHub</td>
+<td align="left">界面朴素，把评论当 issue 管理</td>
+</tr>
+<tr>
+<td align="left">Waline</td>
+<td align="left">自建数据库</td>
+<td align="left">是（Vercel&#x2F;LeanCloud）</td>
+<td align="left">微信&#x2F;匿名&#x2F;邮箱</td>
+<td align="left">不想让读者登录 GitHub</td>
+</tr>
+<tr>
+<td align="left">Twikoo</td>
+<td align="left">自建数据库</td>
+<td align="left">是</td>
+<td align="left">微信&#x2F;QQ&#x2F;邮箱</td>
+<td align="left">功能最全，部署最麻烦</td>
+</tr>
+</tbody></table>
+<p>本站选 Giscus：零后端、零费用、和站点同仓库、支持暗色模式自动切换。</p>
+<h2 id="二、原理"><a href="#二、原理" class="headerlink" title="二、原理"></a>二、原理</h2><p>Giscus 是一个 GitHub App + 前端脚本：</p>
+<ol>
+<li>页面加载时插入一段 <code>&lt;script src=&quot;https://giscus.app/client.js&quot;&gt;</code></li>
+<li>脚本按 <code>data-mapping</code> 规则把当前页面<strong>映射成一个 Discussion</strong></li>
+<li>读写评论全部走 GitHub API，权限就是读者自己的 GitHub 账号</li>
+</ol>
+<p>所以它需要的配置就是：仓库、仓库 ID、分类 ID、映射方式。</p>
+<h2 id="三、实操"><a href="#三、实操" class="headerlink" title="三、实操"></a>三、实操</h2><h3 id="1-开启-Discussions"><a href="#1-开启-Discussions" class="headerlink" title="1. 开启 Discussions"></a>1. 开启 Discussions</h3><p>仓库 Settings 里勾选 <strong>Discussions</strong>，或者用 API：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PATCH /repos/&#123;owner&#125;/&#123;repo&#125;</span><br><span class="line">&#123; &quot;has_discussions&quot;: true &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-拿-repo-id-和-category-id"><a href="#2-拿-repo-id-和-category-id" class="headerlink" title="2. 拿 repo_id 和 category_id"></a>2. 拿 <code>repo_id</code> 和 <code>category_id</code></h3><p>这两个 ID <strong>只能通过 GraphQL 查</strong>，REST 接口没有：</p>
+<figure class="highlight graphql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">query</span> <span class="punctuation">&#123;</span></span><br><span class="line">  repository<span class="punctuation">(</span><span class="symbol">owner</span><span class="punctuation">:</span> <span class="string">&quot;fwind-hidden&quot;</span>, <span class="symbol">name</span><span class="punctuation">:</span> <span class="string">&quot;fwind-hidden.github.io&quot;</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">    id</span><br><span class="line">    discussionCategories<span class="punctuation">(</span><span class="symbol">first</span><span class="punctuation">:</span> <span class="number">25</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">      nodes <span class="punctuation">&#123;</span> id name slug <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>本站拿到的值：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repo_id              = R_kgDOVXzZrw</span><br><span class="line">Announcements 分类    = DIC_kwDOVXzZr84DJpuF</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>分类建议选 <code>Announcements</code>：只有你能在里面新建讨论，读者的评论都会挂在已有讨论下，不会污染分类。</p>
+</blockquote>
+<h3 id="3-写-Butterfly-配置"><a href="#3-写-Butterfly-配置" class="headerlink" title="3. 写 Butterfly 配置"></a>3. 写 Butterfly 配置</h3><p>改 <code>_config.butterfly.yml</code>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">comments:</span></span><br><span class="line">  <span class="comment"># 系统名必须大小写一致</span></span><br><span class="line">  <span class="attr">use:</span> <span class="string">Giscus</span></span><br><span class="line">  <span class="attr">text:</span> <span class="literal">true</span></span><br><span class="line">  <span class="comment"># 开启后评论数统计会失效</span></span><br><span class="line">  <span class="attr">lazyload:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">count:</span> <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="attr">giscus:</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">fwind-hidden/fwind-hidden.github.io</span></span><br><span class="line">  <span class="attr">repo_id:</span> <span class="string">R_kgDOVXzZrw</span></span><br><span class="line">  <span class="attr">category_id:</span> <span class="string">DIC_kwDOVXzZr84DJpuF</span></span><br><span class="line">  <span class="attr">light_theme:</span> <span class="string">light</span></span><br><span class="line">  <span class="attr">dark_theme:</span> <span class="string">dark</span></span><br><span class="line">  <span class="attr">js:</span></span><br><span class="line">  <span class="attr">option:</span></span><br><span class="line">    <span class="attr">data-lang:</span> <span class="string">zh-CN</span></span><br><span class="line">    <span class="attr">data-mapping:</span> <span class="string">pathname</span></span><br><span class="line">    <span class="attr">data-strict:</span> <span class="number">0</span></span><br><span class="line">    <span class="attr">data-reactions-enabled:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">data-input-position:</span> <span class="string">top</span></span><br><span class="line">    <span class="attr">data-loading:</span> <span class="string">lazy</span></span><br></pre></td></tr></table></figure>
+
+<p>两个要点：</p>
+<ul>
+<li><code>option</code> 里的键会<strong>原样变成 giscus 脚本的 <code>data-*</code> 属性</strong>，所以键名必须用带 <code>data-</code> 前缀的写法</li>
+<li><code>light_theme</code> &#x2F; <code>dark_theme</code> 对应站点的明暗模式，Butterfly 会在切换主题时通过 <code>postMessage</code> 通知 iframe 换肤，不需要刷新</li>
+</ul>
+<h3 id="4-生成并发布"><a href="#4-生成并发布" class="headerlink" title="4. 生成并发布"></a>4. 生成并发布</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo.cmd clean</span><br><span class="line">hexo.cmd generate</span><br><span class="line">hexo.cmd deploy</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-装-GitHub-App（最容易漏）"><a href="#5-装-GitHub-App（最容易漏）" class="headerlink" title="5. 装 GitHub App（最容易漏）"></a>5. 装 GitHub App（最容易漏）</h3><p>打开 <a target="_blank" rel="noopener" href="https://github.com/apps/giscus">https://github.com/apps/giscus</a> → Install → 选择你的仓库。</p>
+<p><strong>没装的话评论区会直接报</strong> <code>giscus is not installed on this repository</code>，前端看起来”加载了但用不了”。</p>
+<h2 id="四、验证"><a href="#四、验证" class="headerlink" title="四、验证"></a>四、验证</h2><ul>
+<li>文章页源码里应有 <code>#giscus-wrap</code> 容器和 <code>giscus.app/client.js</code></li>
+<li>用 <code>pathname</code> 映射时，每篇文章自动对应一个讨论，改标题也不会重复建讨论</li>
+<li>首次有人评论后，仓库 Discussions 里会出现对应条目</li>
+</ul>
+<h2 id="五、踩过的坑"><a href="#五、踩过的坑" class="headerlink" title="五、踩过的坑"></a>五、踩过的坑</h2><table>
+<thead>
+<tr>
+<th align="left">现象</th>
+<th align="left">原因</th>
+<th align="left">解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">全站 404</td>
+<td align="left">仓库推送了但 GitHub Pages 没开</td>
+<td align="left">Settings → Pages 选 <code>gh-pages</code> 分支，约 60—90 秒生效</td>
+</tr>
+<tr>
+<td align="left">评论区空了</td>
+<td align="left">只填了 repo，没填两个 ID</td>
+<td align="left">ID 必须用 GraphQL 查，REST 拿不到</td>
+</tr>
+<tr>
+<td align="left">评论框不出现</td>
+<td align="left"><code>comments.use</code> 写成 <code>giscus</code></td>
+<td align="left">必须首字母大写 <code>Giscus</code></td>
+</tr>
+<tr>
+<td align="left">换肤后颜色不对</td>
+<td align="left">只配了一个主题</td>
+<td align="left"><code>light_theme</code> 和 <code>dark_theme</code> 都要配</td>
+</tr>
+<tr>
+<td align="left">评论数永远是 0</td>
+<td align="left">开了 <code>lazyload</code></td>
+<td align="left">关掉 lazyload</td>
+</tr>
+</tbody></table>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Giscus 的配置量不大，真正容易卡住的是三件事：<strong>Pages 有没有开</strong>、<strong>两个 ID 有没有用 GraphQL 拿对</strong>、<strong>App 有没有装</strong>。把这三步做完，剩下的就只是贴一段 YAML。</p>
+<hr>
+<blockquote>
+<p><strong>说明</strong>：本文由 AI 撰写，内容基于本站实际接入过程整理。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://fwind-hidden.github.io">fwind_hidden</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://fwind-hidden.github.io/2026/10/26/giscus-comments-setup/">https://fwind-hidden.github.io/2026/10/26/giscus-comments-setup/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://fwind-hidden.github.io" target="_blank">fwind_hidden的小破站</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%8A%80%E6%9C%AF/">技术</a><a class="post-meta__tags" href="/tags/Giscus/">Giscus</a><a class="post-meta__tags" href="/tags/%E8%AF%84%E8%AE%BA%E7%B3%BB%E7%BB%9F/">评论系统</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/10/26/hexo-butterfly-build-log/" title="Hexo + Butterfly 建站全程记录"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Hexo + Butterfly 建站全程记录</div></div><div class="info-2"><div class="info-item-1">Hexo + Butterfly 个人博客搭建全程记录 记录日期：2026-10-26站点目录：D:\&lt;站点目录&gt;最终结果：Hexo 8.1.2 + Butterfly 5.7.0，默认深色模式，银河背景，2 篇文章，6 条友链，赞助页，GitHub Pages 部署已就绪  本文按”从装依赖到可上传”的真实顺序写，每一步都附上当时实际出现的报错与解决办法。第 11 节是报错速查表，遇到问题可以直接跳到那里。  0. 环境事实   项 版本 &#x2F; 值    操作系统 Windows 10.0.26200   Node.js v24.21.0   npm 11.19.0   git 2.55.0.windows.5   hexo-cli 4.3.2   Hexo 本体 8.1.2（package.json 写 ^8.0.0）   主题 hexo-theme-butterfly 5.7.0   字数插件 hexo-wordcount 6.0.1   部署插件 hexo-deployer-git   站点 url https://fwind-hidden.githu...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">fwind_hidden</div><div class="author-info-description">fwind_hidden 的个人博客，记录代码、阅读与生活。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/fwind-hidden"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/fwind-hidden" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:fwind_hidden@163.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="https://space.bilibili.com/326093280" target="_blank" title="BiliBili"><i class="fab fa-bilibili" style="color: #00A1D6;"></i></a><a class="social-icon" href="https://www.qrz.com/db/BH7IBD" target="_blank" title="QRZ"><i class="fas fa-broadcast-tower" style="color: #8B6914;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">fwind_hidden的小破站开业了！欢迎各位前来浏览观赏。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9B%9B%E7%A7%8D%E6%96%B9%E6%A1%88%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">1.</span> <span class="toc-text">一、四种方案怎么选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%8E%9F%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">二、原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%9E%E6%93%8D"><span class="toc-number">3.</span> <span class="toc-text">三、实操</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BC%80%E5%90%AF-Discussions"><span class="toc-number">3.1.</span> <span class="toc-text">1. 开启 Discussions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%8B%BF-repo-id-%E5%92%8C-category-id"><span class="toc-number">3.2.</span> <span class="toc-text">2. 拿 repo_id 和 category_id</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%86%99-Butterfly-%E9%85%8D%E7%BD%AE"><span class="toc-number">3.3.</span> <span class="toc-text">3. 写 Butterfly 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%94%9F%E6%88%90%E5%B9%B6%E5%8F%91%E5%B8%83"><span class="toc-number">3.4.</span> <span class="toc-text">4. 生成并发布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E8%A3%85-GitHub-App%EF%BC%88%E6%9C%80%E5%AE%B9%E6%98%93%E6%BC%8F%EF%BC%89"><span class="toc-number">3.5.</span> <span class="toc-text">5. 装 GitHub App（最容易漏）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%AA%8C%E8%AF%81"><span class="toc-number">4.</span> <span class="toc-text">四、验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%B8%A9%E8%BF%87%E7%9A%84%E5%9D%91"><span class="toc-number">5.</span> <span class="toc-text">五、踩过的坑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/26/giscus-comments-setup/" title="用 Giscus 给 Hexo + Butterfly 博客加评论系统">用 Giscus 给 Hexo + Butterfly 博客加评论系统</a><time datetime="2026-10-26T13:00:00.000Z" title="发表于 2026-10-26 21:00:00">2026-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/26/hexo-butterfly-build-log/" title="Hexo + Butterfly 建站全程记录">Hexo + Butterfly 建站全程记录</a><time datetime="2026-10-26T12:00:00.000Z" title="发表于 2026-10-26 20:00:00">2026-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/26/print-hello-world/" title="print('Hello World')">print('Hello World')</a><time datetime="2026-10-26T04:00:00.000Z" title="发表于 2026-10-26 12:00:00">2026-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/12/ji-xue-xiao-sheng-qi/" title="记学校升旗 10.12">记学校升旗 10.12</a><time datetime="2026-10-11T23:30:00.000Z" title="发表于 2026-10-12 07:30:00">2026-10-12</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By fwind_hidden</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"data-lang":"zh-CN","data-mapping":"pathname","data-strict":0,"data-reactions-enabled":1,"data-input-position":"top","data-loading":"lazy"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'fwind-hidden/fwind-hidden.github.io',
+      'data-repo-id': 'R_kgDOVXzZrw',
+      'data-category-id': 'DIC_kwDOVXzZr84DJpuF',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
