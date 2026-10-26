@@ -1,0 +1,420 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>安装 Giscus App：一步步把评论区跑通 | fwind_hidden的小破站</title><meta name="author" content="fwind_hidden"><meta name="copyright" content="fwind_hidden"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#0d0d0d"><meta name="description" content="上一篇记录了 Giscus 在 Butterfly 里的配置。但配置完只是”页面上长出了评论区”，离真正能发评论还差最后一步：安装 GitHub App。这篇只讲操作链路，每一步说清点哪儿、看到什么、失败长什么样。 一、先理解：这里有两层授权很多人卡住，是因为把两件事当成了一件：    层级 谁来做 授权对象 作用    App 安装 仓库主人（你，一次） 仓库 允许 giscus 读写这个仓库的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="安装 Giscus App：一步步把评论区跑通">
+<meta property="og:url" content="https://fwind-hidden.github.io/2026/10/26/giscus-app-install-guide/index.html">
+<meta property="og:site_name" content="fwind_hidden的小破站">
+<meta property="og:description" content="上一篇记录了 Giscus 在 Butterfly 里的配置。但配置完只是”页面上长出了评论区”，离真正能发评论还差最后一步：安装 GitHub App。这篇只讲操作链路，每一步说清点哪儿、看到什么、失败长什么样。 一、先理解：这里有两层授权很多人卡住，是因为把两件事当成了一件：    层级 谁来做 授权对象 作用    App 安装 仓库主人（你，一次） 仓库 允许 giscus 读写这个仓库的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://fwind-hidden.github.io/img/avatar.png">
+<meta property="article:published_time" content="2026-10-26T13:30:00.000Z">
+<meta property="article:modified_time" content="2026-10-26T11:07:14.428Z">
+<meta property="article:author" content="fwind_hidden">
+<meta property="article:tag" content="Giscus">
+<meta property="article:tag" content="技术">
+<meta property="article:tag" content="评论系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://fwind-hidden.github.io/img/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "安装 Giscus App：一步步把评论区跑通",
+  "url": "https://fwind-hidden.github.io/2026/10/26/giscus-app-install-guide/",
+  "image": "https://fwind-hidden.github.io/img/avatar.png",
+  "datePublished": "2026-10-26T13:30:00.000Z",
+  "dateModified": "2026-10-26T11:07:14.428Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "fwind_hidden",
+      "url": "https://fwind-hidden.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://fwind-hidden.github.io/2026/10/26/giscus-app-install-guide/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.7.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '安装 Giscus App：一步步把评论区跑通',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#site-subtitle #subtitle { white-space: pre-wrap; }</style><style>#footer{background-color:#12151c!important;background-image:none!important}#footer>*, #footer .copyright, #footer .framework-info{color:#aeb9c6!important}#footer a{color:#aeb9c6!important}#footer a:hover{color:#49b1f5!important}</style><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/sponsor/"><i class="fa-fw fas fa-coffee"></i><span> 赞助</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/top.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">fwind_hidden的小破站</span></a><a class="nav-page-title" href="/"><span class="site-name">安装 Giscus App：一步步把评论区跑通</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/sponsor/"><i class="fa-fw fas fa-coffee"></i><span> 赞助</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">安装 Giscus App：一步步把评论区跑通</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-10-26T13:30:00.000Z" title="发表于 2026-10-26 21:30:00">2026-10-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-10-26T11:07:14.428Z" title="更新于 2026-10-26 19:07:14">2026-10-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">998</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>上一篇记录了 Giscus 在 Butterfly 里的配置。但配置完只是”页面上长出了评论区”，离真正能发评论还差最后一步：<strong>安装 GitHub App</strong>。这篇只讲操作链路，每一步说清点哪儿、看到什么、失败长什么样。</p>
+<h2 id="一、先理解：这里有两层授权"><a href="#一、先理解：这里有两层授权" class="headerlink" title="一、先理解：这里有两层授权"></a>一、先理解：这里有两层授权</h2><p>很多人卡住，是因为把两件事当成了一件：</p>
+<table>
+<thead>
+<tr>
+<th align="left">层级</th>
+<th align="left">谁来做</th>
+<th align="left">授权对象</th>
+<th align="left">作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>App 安装</strong></td>
+<td align="left">仓库主人（你，一次）</td>
+<td align="left">仓库</td>
+<td align="left">允许 giscus 读写这个仓库的 Discussions</td>
+</tr>
+<tr>
+<td align="left"><strong>个人授权</strong></td>
+<td align="left">每个评论者（首次）</td>
+<td align="left">自己的 GitHub 账号</td>
+<td align="left">允许 giscus 代表他发评论</td>
+</tr>
+</tbody></table>
+<p>你只需要做第一层。第二层由读者在点「登录」时自己完成。</p>
+<p>两层都没做时，评论区显示的是 <strong><code>giscus is not installed on this repository</code></strong>——这个报错只跟第一层有关。</p>
+<h2 id="二、操作链路"><a href="#二、操作链路" class="headerlink" title="二、操作链路"></a>二、操作链路</h2><h3 id="步骤-1-·-打开-App-页面"><a href="#步骤-1-·-打开-App-页面" class="headerlink" title="步骤 1 · 打开 App 页面"></a>步骤 1 · 打开 App 页面</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/apps/giscus</span><br></pre></td></tr></table></figure>
+
+<p>先确认右上角登录的是<strong>仓库所属账号</strong>。登录错账号是后面所有失败的头号原因。</p>
+<h3 id="步骤-2-·-点-Install"><a href="#步骤-2-·-点-Install" class="headerlink" title="步骤 2 · 点 Install"></a>步骤 2 · 点 Install</h3><p>页面右上角绿色 <strong><code>Install</code></strong> 按钮。</p>
+<blockquote>
+<p>如果这里显示的是 <code>Configure</code>，说明已经装过，直接跳到步骤 5 检查范围。</p>
+</blockquote>
+<h3 id="步骤-3-·-选择安装位置"><a href="#步骤-3-·-选择安装位置" class="headerlink" title="步骤 3 · 选择安装位置"></a>步骤 3 · 选择安装位置</h3><p>GitHub 要求 App 装在”账号或组织”上，不是直接装在仓库上：</p>
+<ul>
+<li>仓库属于个人 → 选个人账号</li>
+<li>仓库属于组织 → 选组织</li>
+</ul>
+<p>选错的话，下一步的仓库列表里根本搜不到你的仓库。</p>
+<h3 id="步骤-4-·-限定仓库范围（唯一容易出错的一步）"><a href="#步骤-4-·-限定仓库范围（唯一容易出错的一步）" class="headerlink" title="步骤 4 · 限定仓库范围（唯一容易出错的一步）"></a>步骤 4 · 限定仓库范围（唯一容易出错的一步）</h3><p>进入 <code>Install giscus</code> 配置页，找到 <strong>Repository access</strong>：</p>
+<table>
+<thead>
+<tr>
+<th align="left">选项</th>
+<th align="left">建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>All repositories</code></td>
+<td align="left">不选（等于授权给你所有仓库）</td>
+</tr>
+<tr>
+<td align="left"><strong><code>Only select repositories</code></strong></td>
+<td align="left">选它，然后只勾目标仓库</td>
+</tr>
+</tbody></table>
+<p>下拉框支持输入仓库名搜索。勾完点绿色 <strong><code>Install</code></strong>。</p>
+<p>这一步没勾上仓库，后面一定报 not installed——而且安装页已经”成功”跳走了，很容易误以为装好了。</p>
+<h3 id="步骤-5-·-核对安装结果"><a href="#步骤-5-·-核对安装结果" class="headerlink" title="步骤 5 · 核对安装结果"></a>步骤 5 · 核对安装结果</h3><p>两个入口任选其一：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/settings/installations</span><br><span class="line">        → giscus → Configure → 看 Repository access</span><br><span class="line"></span><br><span class="line">https://github.com/&lt;用户名&gt;/&lt;仓库名&gt;/settings/installations</span><br><span class="line">        → 应能看到 giscus</span><br></pre></td></tr></table></figure>
+
+<p>正确的状态：<code>Only select repositories (1)</code>，且列表里就是你的博客仓库。</p>
+<h3 id="步骤-6-·-看评论区的变化"><a href="#步骤-6-·-看评论区的变化" class="headerlink" title="步骤 6 · 看评论区的变化"></a>步骤 6 · 看评论区的变化</h3><p>打开任意文章页，滚到最底部：</p>
+<table>
+<thead>
+<tr>
+<th align="left">显示</th>
+<th align="left">含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">红色 <code>giscus is not installed on this repository</code></td>
+<td align="left">步骤 4 没勾上仓库，回去重配</td>
+</tr>
+<tr>
+<td align="left"><strong><code>Sign in with GitHub</code></strong> 按钮</td>
+<td align="left">安装成功</td>
+</tr>
+<tr>
+<td align="left">一片空白</td>
+<td align="left">多半是缓存，强制刷新（Ctrl+F5）</td>
+</tr>
+</tbody></table>
+<h3 id="步骤-7-·-发第一条评论"><a href="#步骤-7-·-发第一条评论" class="headerlink" title="步骤 7 · 发第一条评论"></a>步骤 7 · 发第一条评论</h3><ol>
+<li>点 <strong><code>Sign in with GitHub</code></strong></li>
+<li>弹出 GitHub 页面 → 点 <strong><code>Authorize giscus</code></strong>（这是第二层授权，代表”你自己”）</li>
+<li>回到页面，出现输入框</li>
+<li>输入内容，提交</li>
+</ol>
+<h3 id="步骤-8-·-确认评论存到了仓库"><a href="#步骤-8-·-确认评论存到了仓库" class="headerlink" title="步骤 8 · 确认评论存到了仓库"></a>步骤 8 · 确认评论存到了仓库</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/&lt;用户名&gt;/&lt;仓库名&gt;/discussions</span><br></pre></td></tr></table></figure>
+
+<p>应该多出一条讨论，<strong>标题就是文章路径</strong>（配置里 <code>data-mapping: pathname</code> 的效果）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/2026/10/26/文章-slug/</span><br></pre></td></tr></table></figure>
+
+<p>每篇文章对应一条讨论，所以改文章标题不会重复建讨论。</p>
+<h2 id="三、卡点速查"><a href="#三、卡点速查" class="headerlink" title="三、卡点速查"></a>三、卡点速查</h2><table>
+<thead>
+<tr>
+<th align="left">现象</th>
+<th align="left">原因</th>
+<th align="left">处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">只有 <code>Configure</code> 没有 <code>Install</code></td>
+<td align="left">之前装过</td>
+<td align="left">去 Configure 检查范围</td>
+</tr>
+<tr>
+<td align="left">仓库下拉搜不到博客仓库</td>
+<td align="left">登录账号或安装位置选错</td>
+<td align="left">确认账号，重选安装位置</td>
+</tr>
+<tr>
+<td align="left">装完仍报 not installed</td>
+<td align="left">范围没勾上目标仓库</td>
+<td align="left">回 <code>settings/installations</code> 重配</td>
+</tr>
+<tr>
+<td align="left">点登录后反复跳回</td>
+<td align="left">浏览器拦第三方 Cookie</td>
+<td align="left">放行 <code>giscus.app</code></td>
+</tr>
+<tr>
+<td align="left">评论提交成功但页面不显示</td>
+<td align="left">iframe 缓存</td>
+<td align="left">等 30 秒或强刷</td>
+</tr>
+<tr>
+<td align="left">讨论建到了错误的分类</td>
+<td align="left"><code>category_id</code> 不对</td>
+<td align="left">用 GraphQL 重新取分类 ID</td>
+</tr>
+</tbody></table>
+<h2 id="四、小结"><a href="#四、小结" class="headerlink" title="四、小结"></a>四、小结</h2><p>Giscus 的配置量其实很小，真正的时间都花在三件事上：<strong>装 App 时有没有勾对仓库</strong>、<strong>两层授权有没有分清</strong>、<strong>报错是不是真的来自 App 未安装</strong>。把这三件事拆开看，剩下的都是复制粘贴。</p>
+<hr>
+<blockquote>
+<p><strong>说明</strong>：本文由 AI 撰写，内容基于实际安装与验证过程整理。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://fwind-hidden.github.io">fwind_hidden</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://fwind-hidden.github.io/2026/10/26/giscus-app-install-guide/">https://fwind-hidden.github.io/2026/10/26/giscus-app-install-guide/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://fwind-hidden.github.io" target="_blank">fwind_hidden的小破站</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%8A%80%E6%9C%AF/">技术</a><a class="post-meta__tags" href="/tags/Giscus/">Giscus</a><a class="post-meta__tags" href="/tags/%E8%AF%84%E8%AE%BA%E7%B3%BB%E7%BB%9F/">评论系统</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/10/26/giscus-comments-setup/" title="用 Giscus 给 Hexo + Butterfly 博客加评论系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">用 Giscus 给 Hexo + Butterfly 博客加评论系统</div></div><div class="info-2"><div class="info-item-1">GitHub Pages 只托管静态文件，没有数据库，所以评论必须”存在别处”。这篇记录本站接入 Giscus 的全过程，含踩坑点。 一、四种方案怎么选   方案 评论存在哪 需要后端 登录方式 适用    Giscus 仓库 Discussions 否 GitHub 推荐，读者有 GitHub 账号即可   Utterances 仓库 Issues 否 GitHub 界面朴素，把评论当 issue 管理   Waline 自建数据库 是（Vercel&#x2F;LeanCloud） 微信&#x2F;匿名&#x2F;邮箱 不想让读者登录 GitHub   Twikoo 自建数据库 是 微信&#x2F;QQ&#x2F;邮箱 功能最全，部署最麻烦   本站选 Giscus：零后端、零费用、和站点同仓库、支持暗色模式自动切换。 二、原理Giscus 是一个 GitHub App + 前端脚本：  页面加载时插入一段 &lt;script src=&quot;https://giscus.app/client.js&quot;&gt; 脚本按 data-mapping 规则把当前页面映射...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/10/26/giscus-comments-setup/" title="用 Giscus 给 Hexo + Butterfly 博客加评论系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-10-26</div><div class="info-item-2">用 Giscus 给 Hexo + Butterfly 博客加评论系统</div></div><div class="info-2"><div class="info-item-1">GitHub Pages 只托管静态文件，没有数据库，所以评论必须”存在别处”。这篇记录本站接入 Giscus 的全过程，含踩坑点。 一、四种方案怎么选   方案 评论存在哪 需要后端 登录方式 适用    Giscus 仓库 Discussions 否 GitHub 推荐，读者有 GitHub 账号即可   Utterances 仓库 Issues 否 GitHub 界面朴素，把评论当 issue 管理   Waline 自建数据库 是（Vercel&#x2F;LeanCloud） 微信&#x2F;匿名&#x2F;邮箱 不想让读者登录 GitHub   Twikoo 自建数据库 是 微信&#x2F;QQ&#x2F;邮箱 功能最全，部署最麻烦   本站选 Giscus：零后端、零费用、和站点同仓库、支持暗色模式自动切换。 二、原理Giscus 是一个 GitHub App + 前端脚本：  页面加载时插入一段 &lt;script src=&quot;https://giscus.app/client.js&quot;&gt; 脚本按 data-mapping 规则把当前页面映射...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">fwind_hidden</div><div class="author-info-description">fwind_hidden 的个人博客，记录代码、阅读与生活。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/fwind-hidden"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/fwind-hidden" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:fwind_hidden@163.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="https://space.bilibili.com/326093280" target="_blank" title="BiliBili"><i class="fab fa-bilibili" style="color: #00A1D6;"></i></a><a class="social-icon" href="https://www.qrz.com/db/BH7IBD" target="_blank" title="QRZ"><i class="fas fa-broadcast-tower" style="color: #8B6914;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">fwind_hidden的小破站开业了！欢迎各位前来浏览观赏。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E7%90%86%E8%A7%A3%EF%BC%9A%E8%BF%99%E9%87%8C%E6%9C%89%E4%B8%A4%E5%B1%82%E6%8E%88%E6%9D%83"><span class="toc-number">1.</span> <span class="toc-text">一、先理解：这里有两层授权</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%93%8D%E4%BD%9C%E9%93%BE%E8%B7%AF"><span class="toc-number">2.</span> <span class="toc-text">二、操作链路</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-1-%C2%B7-%E6%89%93%E5%BC%80-App-%E9%A1%B5%E9%9D%A2"><span class="toc-number">2.1.</span> <span class="toc-text">步骤 1 · 打开 App 页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-2-%C2%B7-%E7%82%B9-Install"><span class="toc-number">2.2.</span> <span class="toc-text">步骤 2 · 点 Install</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-3-%C2%B7-%E9%80%89%E6%8B%A9%E5%AE%89%E8%A3%85%E4%BD%8D%E7%BD%AE"><span class="toc-number">2.3.</span> <span class="toc-text">步骤 3 · 选择安装位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-4-%C2%B7-%E9%99%90%E5%AE%9A%E4%BB%93%E5%BA%93%E8%8C%83%E5%9B%B4%EF%BC%88%E5%94%AF%E4%B8%80%E5%AE%B9%E6%98%93%E5%87%BA%E9%94%99%E7%9A%84%E4%B8%80%E6%AD%A5%EF%BC%89"><span class="toc-number">2.4.</span> <span class="toc-text">步骤 4 · 限定仓库范围（唯一容易出错的一步）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-5-%C2%B7-%E6%A0%B8%E5%AF%B9%E5%AE%89%E8%A3%85%E7%BB%93%E6%9E%9C"><span class="toc-number">2.5.</span> <span class="toc-text">步骤 5 · 核对安装结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-6-%C2%B7-%E7%9C%8B%E8%AF%84%E8%AE%BA%E5%8C%BA%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-number">2.6.</span> <span class="toc-text">步骤 6 · 看评论区的变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-7-%C2%B7-%E5%8F%91%E7%AC%AC%E4%B8%80%E6%9D%A1%E8%AF%84%E8%AE%BA"><span class="toc-number">2.7.</span> <span class="toc-text">步骤 7 · 发第一条评论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A4-8-%C2%B7-%E7%A1%AE%E8%AE%A4%E8%AF%84%E8%AE%BA%E5%AD%98%E5%88%B0%E4%BA%86%E4%BB%93%E5%BA%93"><span class="toc-number">2.8.</span> <span class="toc-text">步骤 8 · 确认评论存到了仓库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8D%A1%E7%82%B9%E9%80%9F%E6%9F%A5"><span class="toc-number">3.</span> <span class="toc-text">三、卡点速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B0%8F%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">四、小结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/26/giscus-app-install-guide/" title="安装 Giscus App：一步步把评论区跑通">安装 Giscus App：一步步把评论区跑通</a><time datetime="2026-10-26T13:30:00.000Z" title="发表于 2026-10-26 21:30:00">2026-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/26/giscus-comments-setup/" title="用 Giscus 给 Hexo + Butterfly 博客加评论系统">用 Giscus 给 Hexo + Butterfly 博客加评论系统</a><time datetime="2026-10-26T13:00:00.000Z" title="发表于 2026-10-26 21:00:00">2026-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/26/hexo-butterfly-build-log/" title="Hexo + Butterfly 建站全程记录">Hexo + Butterfly 建站全程记录</a><time datetime="2026-10-26T12:00:00.000Z" title="发表于 2026-10-26 20:00:00">2026-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/26/print-hello-world/" title="print('Hello World')">print('Hello World')</a><time datetime="2026-10-26T04:00:00.000Z" title="发表于 2026-10-26 12:00:00">2026-10-26</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/10/12/ji-xue-xiao-sheng-qi/" title="记学校升旗 10.12">记学校升旗 10.12</a><time datetime="2026-10-11T23:30:00.000Z" title="发表于 2026-10-12 07:30:00">2026-10-12</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By fwind_hidden</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.7.0</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.7.0"></script><script src="/js/main.js?v=5.7.0"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = {"data-lang":"zh-CN","data-mapping":"pathname","data-strict":0,"data-reactions-enabled":1,"data-input-position":"top","data-loading":"lazy"}
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'fwind-hidden/fwind-hidden.github.io',
+      'data-repo-id': 'R_kgDOVXzZrw',
+      'data-category-id': 'DIC_kwDOVXzZr84DJpuF',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
